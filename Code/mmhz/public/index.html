@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Stray Animal Revenue Center</title>
+  <link rel="stylesheet" href="main.css">
+  <style>
+    /* 背景渐变 */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #fde9a9 0%, #ffb0d9 100%);
+      background-attachment: fixed;
+      color: #222;
+    }
+
+    /* 顶部导航栏 */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 50px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .nav-left {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .nav-right a {
+      margin-left: 25px;
+      text-decoration: none;
+      color: #222;
+      opacity: .75;
+    }
+    .nav-right a:hover {
+      opacity: 1;
+    }
+
+    /* 大标题（Hero Section） */
+    .hero {
+      max-width: 900px;
+      margin: 50px auto 30px auto;
+      text-align: left;
+      padding: 0 20px;
+    }
+
+    .hero h1 {
+      font-size: 70px;
+      line-height: 1.05;
+      font-weight: 900;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: 20px;
+      opacity: 0.75;
+      margin-bottom: 30px;
+    }
+
+    /* 按钮样式 */
+    .btn-black {
+      display: inline-block;
+      background: black;
+      color: white;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 15px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-right: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .btn-black:hover {
+      opacity: 0.85;
+    }
+
+    /* 视频横幅 */
+    .hero-video {
+      width: 100%;
+      max-width: 1000px;
+      margin: 40px auto;
+      display: block;
+      border-radius: 26px;
+      box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
+    }
+
+    /* 卡片区域 */
+    .card-container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      opacity: 0.75;
+      margin-bottom: 18px;
+    }
+
+    .card button {
+      background: black;
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .card button:hover {
+      opacity: 0.85;
+    }
+    html {
+  scroll-behavior: smooth;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- 顶部导航 -->
+  <div class="navbar">
+    <div class="nav-left">Radiant · Stray Animal</div>
+    <div class="nav-right">
+      <a href="#">Pricing</a>
+      <a href="#">Company</a>
+      <a href="#">Help</a>
+      <a href="orders.html"><strong>收益统计</strong></a>
+    </div>
+  </div>
+
+  <!-- Hero 文案 -->
+  <div class="hero">
+    <h1>Close every deal.</h1>
+    <p>帮助流浪动物，支持公益，让爱与责任更简单。</p>
+    <a href="donation.html" class="btn-black">立即捐助</a>
+    <a href="#services" class="btn-black">查看服务</a>
+  </div>
+
+  <!-- 插入你的视频横幅 -->
+  <video 
+    class="hero-video"
+    src="https://i.imgur.com/3ISIewL.mp4"
+    autoplay 
+    muted 
+    loop 
+    playsinline>
+  </video>
+
+  <!-- 四个服务入口 -->
+  <div id="services" class="card-container">
+
+    <div class="card">
+      <h2>疫苗合作服务</h2>
+      <p>查看合作医院提供的疫苗套餐</p>
+      <button onclick="location.href='vaccine.html'">查看疫苗套餐</button>
+    </div>
+
+    <div class="card">
+      <h2>宠物食粮合作</h2>
+      <p>购买优惠宠粮产品，支持平台运营</p>
+      <button onclick="location.href='food.html'">进入宠粮商城</button>
+    </div>
+
+    <div class="card">
+      <h2>宠物保险合作</h2>
+      <p>为宠物提供医疗与健康保障</p>
+      <button onclick="location.href='insurance.html'">查看保险方案</button>
+    </div>
+
+    <div class="card">
+      <h2>平台捐助</h2>
+      <p>每一份捐助，都能帮助一只需要帮助的小动物</p>
+      <button onclick="location.href='donation.html'">立即捐助</button>
+    </div>
+
+  </div>
+
+</body>
+</html>

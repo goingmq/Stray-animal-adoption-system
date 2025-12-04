@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>平台捐助</title>
+  <link rel="stylesheet" href="main.css">
+  <script defer src="main.js"></script>
+  <script defer>
+    function goPay() {
+      const amountInput = document.getElementById('amount');
+      const amount = parseFloat(amountInput.value);
+
+      if (isNaN(amount) || amount <= 0) {
+        alert('请输入一个大于 0 的金额');
+        return;
+      }
+
+      const name = `平台捐助 - ￥${amount}`;
+      const url = `payment.html?service_type=donation&name=${encodeURIComponent(name)}&amount=${amount}`;
+      location.href = url;
+    }
+  </script>
+</head>
+<body>
+<div class="container">
+  <nav>
+    <a href="index.html">返回盈利中心</a>
+  </nav>
+
+  <h1>平台捐助</h1>
+  <p>请输入捐助金额：</p>
+
+  <input id="amount" type="number" min="1" step="1" value="50"> 元
+
+  <br><br>
+  <button onclick="goPay()">立即捐助</button>
+</div>
+</body>
+</html>

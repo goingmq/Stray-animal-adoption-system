@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>支付成功</title>
+  <link rel="stylesheet" href="main.css">
+  <script defer src="main.js"></script>
+  <script defer>
+    function init() {
+      const orderId = getQueryParam('order_id');
+      document.getElementById('orderId').innerText = orderId || '未知';
+    }
+    window.onload = init;
+  </script>
+</head>
+
+<body>
+<div class="container">
+  <h1>支付成功 ✔</h1>
+  <p>您的订单已完成！</p>
+  <p>订单编号：<span id="orderId"></span></p>
+
+  <button onclick="location.href='index.html'">返回盈利中心</button>
+</div>
+</body>
+</html>

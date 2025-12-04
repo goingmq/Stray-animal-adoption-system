@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>订单确认与支付</title>
+  <link rel="stylesheet" href="main.css">
+  <script defer src="main.js"></script>
+  <script defer>
+    // 页面初始化，读取 URL 参数
+    function init() {
+      const serviceType = getQueryParam('service_type');
+      const name = getQueryParam('name');
+      const amount = getQueryParam('amount');
+
+      document.getElementById('serviceType').innerText = serviceType || '';
+      document.getElementById('productName').innerText = name || '';
+      document.getElementById('amount').innerText = amount || '0';
+    }
+
+    // 点击支付按钮 → 发送订单数据给后端
+    async function confirmPay() {
+      const serviceType = getQueryParam('service_type');
+      const name = getQueryParam('name');
+      const amount = parseFloat(getQueryParam('amount'));
+
+      const res = await fetch('/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_type: serviceType,
+          product_name: name,
+          amount: amount
+        })
+      });
+
+      const data = await res.json();
+      
+      if (data.status === 'success') {
+        // 跳转到支付成功页面
+        location.href = `success.html?order_id=${data.order_id}`;
+      } else {
+        alert('支付失败：' + (data.error || '未知错误'));
+      }
+    }
+
+    window.onload = init;
+  </script>
+</head>
+
+<body>
+<div class="container">
+  <nav>
+    <a href="index.html">返回盈利中心</a>
+  </nav>
+
+  <h1>订单确认</h1>
+  <p>服务类型：<span id="serviceType"></span></p>
+  <p>商品/项目：<span id="productName"></span></p>
+  <p>金额：￥<span id="amount"></span></p>
+
+  <button onclick="confirmPay()">确认支付（模拟支付）</button>
+</div>
+</body>
+</html>
