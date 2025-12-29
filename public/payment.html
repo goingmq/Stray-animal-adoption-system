@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>订单确认与支付</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      padding: 40px;
+    }
+    .container {
+      max-width: 480px;
+      background: #fff;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 6px 16px rgba(0,0,0,.15);
+      margin: auto;
+    }
+    nav a {
+      color: #333;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    p {
+      font-size: 16px;
+      margin: 12px 0;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #ff7a7a;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+
+  <script>
+    function getQueryParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    function init() {
+      document.getElementById('serviceType').innerText =
+        getQueryParam('service_type') || '';
+      document.getElementById('productName').innerText =
+        getQueryParam('name') || '';
+      document.getElementById('amount').innerText =
+        getQueryParam('amount') || '0';
+    }
+
+    async function confirmPay() {
+      const serviceType = getQueryParam('service_type');
+      const name = getQueryParam('name');
+      const amount = parseFloat(getQueryParam('amount'));
+
+      const res = await fetch('/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_type: serviceType,
+          product_name: name,
+          amount: amount
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        location.href = `success.html?order_id=${data.order_id}`;
+      } else {
+        alert('支付失败：' + (data.error || '未知错误'));
+      }
+    }
+
+    window.onload = init;
+  </script>
+</head>
+
+<body>
+<div class="container">
+  <nav>
+    <a href="/index.html">← 返回首页</a>
+  </nav>
+
+  <h1>订单确认</h1>
+  <p>服务类型：<b id="serviceType"></b></p>
+  <p>商品 / 项目：<b id="productName"></b></p>
+  <p>金额：￥<b id="amount"></b></p>
+
+  <button onclick="confirmPay()">确认支付（模拟）</button>
+</div>
+</body>
+</html>

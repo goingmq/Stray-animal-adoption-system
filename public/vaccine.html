@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>疫苗合作服务</title>
+  <link rel="stylesheet" href="main.css">
+  <script defer src="main.js"></script>
+  <script defer>
+    async function loadVaccine() {
+      const res = await fetch('/api/vaccine');
+      const list = await res.json();
+      const container = document.getElementById('list');
+      container.innerHTML = '';
+
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <h2>${item.name}</h2>
+          <p>价格：￥${item.amount}</p>
+          <button onclick="goPay('${item.name}', ${item.amount}, 'vaccine')">预约并支付</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function goPay(name, amount, type) {
+      const url = `payment.html?service_type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}&amount=${amount}`;
+      location.href = url;
+    }
+
+    window.onload = loadVaccine;
+  </script>
+</head>
+<body>
+<div class="container">
+  <nav>
+    <a href="index.html">返回盈利中心</a>
+  </nav>
+  <h1>疫苗合作服务</h1>
+  <div id="list">加载中...</div>
+</div>
+</body>
+</html>

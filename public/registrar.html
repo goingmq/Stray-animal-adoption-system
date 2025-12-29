@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>漫漫济宠 · 登记人员工作台</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI","PingFang SC",Arial,sans-serif;
+      background: linear-gradient(135deg,#fff1eb,#ace0f9);
+      padding: 30px;
+    }
+
+    h1 { margin-bottom: 20px; }
+
+    .box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.15);
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 4px;
+    }
+
+    button {
+      margin-top: 14px;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: #ff7a7a;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .secondary {
+      background:#607d8b;
+    }
+
+    .nav {
+      margin-bottom: 20px;
+    }
+
+    .nav a {
+      margin-right: 16px;
+      font-size: 14px;
+      text-decoration: none;
+      color: #333;
+    }
+
+    hr {
+      margin: 24px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="nav">
+  <a href="/index.html">返回首页</a>
+  <a href="/revenue.html">盈利中心</a>
+</div>
+
+<h1>📋 登记人员 · 动物登记与发布</h1>
+
+<!-- 基础信息 -->
+<div class="box">
+  <h2>动物基础信息</h2>
+  
+  <label>动物名称
+    <input id="name">
+  </label>
+
+  <label>种类
+    <select id="species">
+      <option value="猫">猫</option>
+      <option value="狗">狗</option>
+    </select>
+  </label>
+
+  <label>寄养类型
+    <select id="fosterType">
+      <option value="family">家庭寄养</option>
+      <option value="shelter">机构寄养</option>
+    </select>
+  </label>
+
+  <label>性别
+    <select id="sex">
+      <option value="未知">未知</option>
+      <option value="公">公</option>
+      <option value="母">母</option>
+    </select>
+  </label>
+
+  <label>年龄（约）
+    <input id="age">
+  </label>
+
+  <label>发现地点
+    <input id="location">
+  </label>
+
+  <label>情况说明
+    <textarea id="description"></textarea>
+  </label>
+
+  <button onclick="createAnimal()">创建动物档案</button>
+
+  <hr>
+
+  <h3>发布动物</h3>
+
+  <label>动物 ID（创建完成后自动填写）
+    <input id="publishAnimalId">
+  </label>
+
+  <button class="secondary" onclick="publishAnimal()">发布 / 上架动物</button>
+</div>
+
+<!-- 健康信息 -->
+<div class="box">
+  <h2>健康与医疗信息</h2>
+
+  <label>动物 ID
+    <input id="animalId">
+  </label>
+
+  <label>
+    <input type="checkbox" id="vaccinated"> 已接种疫苗
+  </label>
+
+  <label>
+    <input type="checkbox" id="neutered"> 已绝育
+  </label>
+
+  <label>
+    <input type="checkbox" id="dewormed"> 已驱虫
+  </label>
+
+  <label>健康备注
+    <textarea id="notes"></textarea>
+  </label>
+
+  <button onclick="saveHealth()">保存健康信息</button>
+  <button class="secondary" onclick="loadHealth()">查看健康档案</button>
+
+  <div id="healthView"></div>
+</div>
+
+<script>
+  async function createAnimal() {
+    const res = await fetch('/api/animals', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        name: document.getElementById('name').value,
+        species: document.getElementById('species').value,
+        foster_type: document.getElementById('fosterType').value,
+        sex: document.getElementById('sex').value,
+        age: document.getElementById('age').value,
+        location: document.getElementById('location').value,
+        description: document.getElementById('description').value
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert('创建成功，动物 ID：' + data.animalId);
+      document.getElementById('animalId').value = data.animalId;
+      document.getElementById('publishAnimalId').value = data.animalId;
+    } else {
+      alert(data.error || '创建失败');
+    }
+  }
+
+
+  async function publishAnimal() {
+    const id = document.getElementById('publishAnimalId').value;
+    if (!id) {
+      alert("请填写动物 ID");
+      return;
+    }
+
+    const res = await fetch(`/api/animals/${id}/publish`, { method:'POST' });
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("动物已成功上架，用户端可见");
+    } else {
+      alert(data.error || "发布失败");
+    }
+  }
+
+  async function saveHealth() {
+    const id = document.getElementById('animalId').value;
+    if (!id) {
+      alert('请先填写动物 ID');
+      return;
+    }
+
+    const res = await fetch(`/api/animals/${id}/health`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        vaccinated: document.getElementById('vaccinated').checked,
+        neutered: document.getElementById('neutered').checked,
+        dewormed: document.getElementById('dewormed').checked,
+        notes: document.getElementById('notes').value
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert('健康信息已保存');
+    } else {
+      alert(data.error || '保存失败');
+    }
+  }
+
+  async function loadHealth() {
+    const id = document.getElementById('animalId').value;
+    if (!id) {
+      alert("请填写动物 ID");
+      return;
+    }
+
+    const res = await fetch(`/api/animals/${id}/health`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "无法读取健康档案");
+      return;
+    }
+
+    document.getElementById('healthView').innerHTML = `
+      <h3>🐾 ${data.name}（${data.species}）</h3>
+      <p>疫苗：${data.vaccinated ? "已接种" : "未接种"}</p>
+      <p>绝育：${data.neutered ? "已绝育" : "未绝育"}</p>
+      <p>驱虫：${data.dewormed ? "已驱虫" : "未驱虫"}</p>
+      <p>备注：${data.notes || "无"}</p>
+    `;
+  }
+</script>
+
+</body>
+</html>

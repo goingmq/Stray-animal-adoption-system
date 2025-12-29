@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>漫漫济宠 · 我的领养</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI","PingFang SC",Arial,sans-serif;
+      background: linear-gradient(135deg,#fff1eb,#ace0f9);
+      padding: 30px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 26px;
+    }
+
+    .title-box h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .title-box p {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .nav a {
+      margin-left: 16px;
+      font-size: 14px;
+      text-decoration: none;
+      color: #333;
+    }
+
+    h2 {
+      margin: 28px 0 16px;
+      font-size: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.15);
+    }
+
+    .meta {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .tag {
+      margin-top: 10px;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      width: fit-content;
+      color: #fff;
+    }
+
+    .published { background:#4caf50; }
+    .submitted { background:#9e9e9e; }
+    .approved { background:#43a047; }
+    .rejected { background:#e53935; }
+
+    button {
+      margin-top: 14px;
+      padding: 8px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: #ff7a7a;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .empty {
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="top">
+  <div class="title-box">
+    <h1>🐾 我的领养</h1>
+    <p id="who"></p>
+  </div>
+  <div class="nav">
+    <a href="/index.html">返回首页</a>
+    <a href="/revenue.html">盈利中心</a>
+  </div>
+</div>
+
+<h2>可领养动物</h2>
+<div id="animalList" class="grid"></div>
+
+<h2>我的领养申请</h2>
+<div id="myApplications" class="grid"></div>
+
+<script>
+  function statusText(status) {
+    if (status === 'submitted') return '已提交，等待管理员审核';
+    if (status === 'approved') return '审核通过，可办理领养手续';
+    if (status === 'rejected') return '审核未通过';
+    return status;
+  }
+
+  async function loadMe() {
+    const res = await fetch('/api/auth/me');
+    const data = await res.json();
+    document.getElementById('who').textContent =
+      data.user ? `当前登录：${data.user.username}` : '未登录';
+  }
+
+  async function applyAdoption(animalId) {
+    const contact = prompt("请输入联系方式（电话/微信）：");
+    if (!contact) return;
+    const reason = prompt("简单说明领养原因（可选）：") || "";
+
+    const res = await fetch('/api/adoptions/apply', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ animal_id:animalId, contact, reason })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("领养申请已提交，请等待管理员审核");
+      loadApplications();
+    } else {
+      alert(data.error || "提交失败");
+    }
+  }
+
+  async function loadAnimals() {
+    const box = document.getElementById('animalList');
+    box.innerHTML = '';
+
+    const res = await fetch('/api/animals');
+    const animals = await res.json();
+
+    const published = animals.filter(a => a.status === 'published');
+    if (!published.length) {
+      box.innerHTML = `<div class="empty">暂无可领养动物</div>`;
+      return;
+    }
+
+    published.forEach(a => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <h3>${a.name}</h3>
+        <div class="meta">种类：${a.species}</div>
+        <div class="tag published">可领养</div>
+        <button onclick="showAnimalDetail(${a.id})">查看详情</button>
+        <button onclick="applyAdoption(${a.id})">申请领养</button>
+      `;
+      box.appendChild(card);
+    });
+  }
+
+  async function loadApplications() {
+    const box = document.getElementById('myApplications');
+    box.innerHTML = '';
+
+    const res = await fetch('/api/adoptions/my');
+    const apps = await res.json();
+
+    if (!apps.length) {
+      box.innerHTML = `<div class="empty">暂无领养申请记录</div>`;
+      return;
+    }
+
+    apps.forEach(a => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      card.innerHTML = `
+        <h3>${a.animal_name}</h3>
+        <div class="meta">${statusText(a.status)}</div>
+        <div class="tag ${a.status}">${a.status}</div>
+      `;
+      box.appendChild(card);
+    });
+  }
+
+  loadMe();
+  loadAnimals();
+  loadApplications();
+
+  async function showAnimalDetail(animalId) {
+    const res = await fetch(`/api/animals/${animalId}`);
+    const data = await res.json();
+
+    const a = data.animal;
+    const h = data.health;
+
+    const text = `
+  动物名称：${a.name}
+  种类：${a.species}
+  性别：${a.sex || '未知'}
+  年龄：${a.age || '未知'}
+  发现地点：${a.location || '未知'}
+
+  健康情况：
+  疫苗接种：${h.vaccinated ? '已接种' : '未接种'}
+  绝育情况：${h.neutered ? '已绝育' : '未绝育'}
+  驱虫情况：${h.dewormed ? '已驱虫' : '未驱虫'}
+  备注：${h.notes || '无'}
+  `;
+
+    alert(text);
+}
+
+</script>
+
+</body>
+</html>

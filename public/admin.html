@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>漫漫济宠 · 管理员后台</title>
+  <link rel="stylesheet" href="/main.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI","PingFang SC",Arial,sans-serif;
+      background: linear-gradient(135deg,#fff1eb,#ace0f9);
+      padding: 30px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 26px;
+    }
+
+    h1 { margin: 0; font-size: 26px; }
+
+    .nav a {
+      margin-left: 16px;
+      font-size: 14px;
+      text-decoration: none;
+      color: #333;
+    }
+
+    h2 { margin: 26px 0 14px; font-size: 20px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(320px,1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.15);
+    }
+
+    .meta {
+      font-size: 14px;
+      color: #555;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 8px;
+      margin-right: 6px;
+      padding: 4px 12px;
+      font-size: 13px;
+      border-radius: 12px;
+      color: #fff;
+    }
+
+    /* 状态 */
+    .draft { background:#9e9e9e; }
+    .published { background:#4caf50; }
+    .adopted { background:#607d8b; }
+    .submitted { background:#ff9800; }
+    .approved { background:#43a047; }
+    .rejected { background:#e53935; }
+
+    /* 寄养类型 */
+    .foster-family { background:#8bc34a; }
+    .foster-shelter { background:#3f51b5; }
+
+    button {
+      margin-top: 10px;
+      margin-right: 6px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: #ff7a7a;
+      color: #fff;
+      font-size: 13px;
+    }
+
+    .secondary { background:#607d8b; }
+    .republish-btn { background:#ff9800; }
+
+    .empty {
+      color:#666;
+      font-size:14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="top">
+  <h1>🛠 管理员后台</h1>
+  <div class="nav">
+    <a href="/index.html">返回首页</a>
+    <a href="/revenue.html">盈利中心</a>
+    <a href="/revenue_stats.html">盈利统计</a>
+    <a href="#" onclick="logout()">退出登录</a>
+  </div>
+</div>
+
+<h2>动物管理</h2>
+
+<div class="filter-box">
+  <span class="filter-label">寄养类型</span>
+  <select id="fosterFilter" onchange="renderAnimals()" class="filter-select">
+    <option value="all">全部</option>
+    <option value="family">家庭寄养</option>
+    <option value="shelter">机构寄养</option>
+  </select>
+</div>
+
+
+<div id="animalList" class="grid"></div>
+
+
+<h2>领养申请管理</h2>
+<div id="adoptionList" class="grid"></div>
+
+<script>
+let ALL_ANIMALS = [];
+/* ================= 公共 ================= */
+async function logout() {
+  await fetch('/api/auth/logout',{method:'POST'});
+  location.href = '/login.html';
+}
+
+/* ================= 动物管理 ================= */
+async function loadAnimals() {
+  const res = await fetch('/api/admin/animals/full');
+  ALL_ANIMALS = await res.json();
+  renderAnimals();
+}
+
+function renderAnimals() {
+  console.log(ALL_ANIMALS);
+
+  const box = document.getElementById('animalList');
+  box.innerHTML = '';
+
+  const filter = document.getElementById('fosterFilter').value;
+
+  let animals = ALL_ANIMALS;
+  if (filter !== 'all') {
+    animals = animals.filter(a => a.foster_type === filter);
+  }
+
+  if (!animals.length) {
+    box.innerHTML = '<div class="empty">暂无符合条件的动物</div>';
+    return;
+  }
+
+  animals.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const fosterClass =
+      a.foster_type === 'shelter' ? 'foster-shelter' : 'foster-family';
+
+    const fosterText =
+      a.foster_type === 'shelter' ? '机构寄养' : '家庭寄养';
+
+    let actions = '';
+    if (a.status === 'draft') {
+      actions = `<button onclick="publish(${a.id})">上架</button>`;
+    }
+    if (a.status === 'published') {
+      actions = `<button class="secondary" onclick="unpublish(${a.id})">下架</button>`;
+    }
+
+    card.innerHTML = `
+      <h3>${a.name}</h3>
+      <div class="tag ${fosterClass}">${fosterText}</div>
+      <div class="meta">种类：${a.species}</div>
+      <div class="meta">性别：${a.sex || '未知'} ｜ 年龄：${a.age || '未知'}</div>
+      <div class="meta">发现地点：${a.location || '未知'}</div>
+      <div class="meta">说明：${a.description || '无'}</div>
+      <div class="tag ${a.status}">${a.status}</div>
+      <div>${actions}</div>
+    `;
+
+    box.appendChild(card);
+  });
+}
+
+async function publish(id) {
+  await fetch(`/api/animals/${id}/publish`,{method:'POST'});
+  loadAnimals();
+}
+
+async function unpublish(id) {
+  await fetch(`/api/admin/animals/${id}/unpublish`,{method:'POST'});
+  loadAnimals();
+}
+
+/* ================= 领养申请 ================= */
+async function loadAdoptions() {
+  const box = document.getElementById('adoptionList');
+  box.innerHTML = '';
+
+  const res = await fetch('/api/admin/adoptions');
+  const apps = await res.json();
+
+  if (!apps.length) {
+    box.innerHTML = '<div class="empty">暂无领养申请</div>';
+    return;
+  }
+
+  apps.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    let actions = '';
+    if (a.status === 'submitted') {
+      actions = `
+        <button onclick="approve(${a.id})">通过</button>
+        <button class="secondary" onclick="reject(${a.id})">驳回</button>
+      `;
+    }
+
+    const republishBtn =
+      a.status === 'rejected'
+        ? `<button class="republish-btn" onclick="republishAnimal(${a.animal_id})">重新发布</button>`
+        : '';
+
+    card.innerHTML = `
+      <h3>${a.animal_name}</h3>
+      <div class="meta">申请人：${a.username}</div>
+      <div class="tag ${a.status}">${a.status}</div>
+      <div>${actions}</div>
+      ${republishBtn}
+    `;
+
+    box.appendChild(card);
+  });
+}
+
+async function approve(id) {
+  await fetch(`/api/admin/adoptions/${id}/approve`,{method:'POST'});
+  loadAdoptions();
+  loadAnimals();
+}
+
+async function reject(id) {
+  await fetch(`/api/admin/adoptions/${id}/reject`,{method:'POST'});
+  loadAdoptions();
+}
+
+async function republishAnimal(animalId) {
+  if (!confirm("确认将该动物重新上架吗？")) return;
+
+  const res = await fetch(`/api/animals/${animalId}/republish`, { method: "POST" });
+  const text = await res.text();
+
+  let data;
+  try { data = JSON.parse(text); } catch(e) {}
+
+  if (res.ok) {
+    alert(data?.message || "动物已重新上架");
+    loadAnimals();
+    loadAdoptions();
+  } else {
+    alert(data?.error || text);
+  }
+}
+
+/* 初始化 */
+loadAnimals();
+loadAdoptions();
+</script>
+
+</body>
+</html>

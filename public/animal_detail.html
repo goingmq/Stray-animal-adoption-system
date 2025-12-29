@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8"/>
+  <title>动物详情</title>
+</head>
+<body>
+
+<a href="/dashboard.html">← 返回列表</a>
+
+<h2 id="title"></h2>
+<p id="info"></p>
+
+<h3>健康情况</h3>
+<div id="health"></div>
+
+<h3>申请领养</h3>
+<input id="contact" placeholder="联系方式"><br><br>
+<textarea id="reason" placeholder="领养理由"></textarea><br><br>
+<button id="apply">提交领养申请</button>
+
+<pre id="msg"></pre>
+
+<script>
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
+
+async function load() {
+  const r = await fetch("/api/animals/" + id);
+  const data = await r.json();
+
+  document.getElementById("title").textContent = data.animal.name;
+  document.getElementById("info").textContent =
+    `物种：${data.animal.species}｜年龄：${data.animal.age || "未知"}`;
+
+  if(data.health){
+    document.getElementById("health").textContent =
+      `疫苗：${data.health.vaccinated ? "已接种" : "未接种"}
+       绝育：${data.health.neutered ? "是" : "否"}
+       备注：${data.health.notes || "无"}`;
+  } else {
+    document.getElementById("health").textContent = "暂无健康记录";
+  }
+}
+
+document.getElementById("apply").onclick = async () => {
+  const contact = document.getElementById("contact").value.trim();
+  const reason = document.getElementById("reason").value.trim();
+  if(!contact){ alert("请填写联系方式"); return; }
+
+  const r = await fetch("/api/adoptions/apply", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ animal_id: id, contact, reason })
+  });
+  const d = await r.json();
+  document.getElementById("msg").textContent =
+    r.ok ? "申请已提交" : d.error;
+};
+
+load();
+</script>
+
+</body>
+</html>

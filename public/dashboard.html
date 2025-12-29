@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8"/>
+  <title>用户中心 - 流浪动物平台</title>
+</head>
+<body>
+
+<h2>普通用户中心</h2>
+
+<nav>
+  <a href="/index.html">返回首页</a> |
+  <a href="/revenue.html">盈利支持</a> |
+  <a href="#" id="logout">退出登录</a>
+</nav>
+
+<hr>
+
+<h3>可领养动物列表</h3>
+<ul id="animalList"></ul>
+
+<script>
+async function loadAnimals() {
+  const r = await fetch("/api/animals");
+  const animals = await r.json();
+  const ul = document.getElementById("animalList");
+  ul.innerHTML = "";
+
+  animals.forEach(a => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <b>${a.name}</b>（${a.species}）
+      <button onclick="view(${a.id})">查看详情</button>
+    `;
+    ul.appendChild(li);
+  });
+}
+
+function view(id){
+  location.href = "/animal_detail.html?id=" + id;
+}
+
+document.getElementById("logout").onclick = async () => {
+  await fetch("/api/auth/logout", { method:"POST" });
+  location.href = "/login.html";
+};
+
+loadAnimals();
+</script>
+
+</body>
+</html>

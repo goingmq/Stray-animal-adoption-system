@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>支付成功</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #e0ffe8, #f5fff8);
+      padding: 40px;
+      text-align: center;
+    }
+    .box {
+      max-width: 420px;
+      background: #fff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.15);
+      margin: auto;
+    }
+    h1 {
+      color: #4caf50;
+    }
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      color: #333;
+    }
+  </style>
+
+  <script>
+    function getQueryParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    window.onload = () => {
+      document.getElementById('orderId').innerText =
+        getQueryParam('order_id') || '未知';
+    };
+  </script>
+</head>
+
+<body>
+  <div class="box">
+    <h1>支付成功 🎉</h1>
+    <p>您的订单已成功生成</p>
+    <p>订单号：<b id="orderId"></b></p>
+
+    <a href="/revenue.html">返回盈利中心</a><br/>
+    <a href="/index.html">返回首页</a>
+  </div>
+</body>
+</html>

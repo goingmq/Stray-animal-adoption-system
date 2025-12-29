@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>盈利统计（管理员）</title>
+  <style>
+    body{font-family:Arial;background:#f5f7fa;padding:30px}
+    .card{background:#fff;border-radius:14px;padding:18px;box-shadow:0 6px 14px rgba(0,0,0,.12);margin-top:18px}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border:1px solid #ddd;padding:8px;font-size:14px}
+    th{background:#fafafa}
+    .ok{color:green;font-weight:bold}
+    .err{color:#c00;font-weight:bold}
+    a{color:#333;text-decoration:none;margin-right:12px}
+  </style>
+</head>
+<body>
+
+<h1>📊 盈利统计（仅管理员）</h1>
+<div>
+  <a href="/revenue.html">返回盈利中心</a>
+  <a href="/admin.html">返回管理员端</a>
+</div>
+
+<div id="gate" class="card">权限校验中...</div>
+
+<div id="content" style="display:none;">
+  <div class="card" id="summary"></div>
+
+  <div class="card">
+    <h2>全站订单明细</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>订单ID</th><th>用户ID</th><th>类型</th><th>商品</th><th>金额</th><th>时间</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function sumByType(orders){
+  const m = {};
+  for(const o of orders){
+    m[o.service_type] = (m[o.service_type] || 0) + Number(o.amount || 0);
+  }
+  return m;
+}
+
+async function main(){
+  const me = await (await fetch('/api/auth/me')).json();
+  const gate = document.getElementById('gate');
+
+  if(!me.user){
+    gate.innerHTML = `<span class="err">未登录，无法查看统计。请先去 login.html 登录 admin。</span>`;
+    return;
+  }
+  if(me.user.role !== 'admin'){
+    gate.innerHTML = `<span class="err">无权限：当前角色为 ${me.user.role}，仅管理员可查看盈利统计。</span>`;
+    return;
+  }
+
+  gate.innerHTML = `<span class="ok">权限通过：${me.user.username}（admin）</span>`;
+  document.getElementById('content').style.display = 'block';
+
+  const r = await fetch('/api/admin/orders');
+  const orders = await r.json();
+
+  const totals = sumByType(orders);
+  const totalAll = Object.values(totals).reduce((a,b)=>a+b,0);
+
+  const summary = document.getElementById('summary');
+  summary.innerHTML = `
+    <h2>收入汇总</h2>
+    <div>总收入：<b>￥${totalAll.toFixed(2)}</b></div>
+    <div style="margin-top:8px;">
+      疫苗：￥${(totals.vaccine||0).toFixed(2)} ｜ 食粮：￥${(totals.food||0).toFixed(2)}
+      ｜ 保险：￥${(totals.insurance||0).toFixed(2)} ｜ 捐助：￥${(totals.donation||0).toFixed(2)}
+    </div>
+  `;
+
+  const tbody = document.getElementById('rows');
+  tbody.innerHTML = '';
+  orders.forEach(o=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${o.id}</td><td>${o.user_id}</td><td>${o.service_type}</td><td>${o.product_name}</td><td>${o.amount}</td><td>${o.created_at}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+main();
+</script>
+</body>
+</html>
